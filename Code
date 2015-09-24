@@ -1,0 +1,40 @@
+#!/usr/bin/expect
+
+set timeout -500
+
+set ip [lindex $argv 0]
+set port [lindex $argv 1]
+set username "pi"
+set password "raspberry"
+
+spawn telnet $ip $port
+expect “‘^]’.”
+send "GREETINGS\r"
+expect "WELCOME"
+
+# http://wiki.tcl.tk/1476
+for {set i 0} {$i < 256} {incr i} {
+	
+	# Convert decimal to hex
+	# http://www.wellho.net/mouth/782_Converting-between-Hex-and-Decimal-in-Tcl.html
+	set dec_to_hex [format 0x%02x $i]
+	# send "\nHex code: $dec_to_hex\n"
+	
+	# Reset LEDs
+	send "SET MCF 0x12 0x00\r"
+	expect "OK SET MCF 0x12 0x00"
+	
+	# Turn on LEDs
+	send "SET MCF 0x12 $dec_to_hex\r"
+	expect "OK SET MCF 0x12 $dec_to_hex"
+	sleep 0.1
+	if {$i == 255} {
+	
+		# Finished showing binary counting
+		send "Well, all bits have been sent."
+		sleep 1
+		send "Enjoy 5 seconds of bright LEDs."
+		sleep 1
+		
+	}	
+}
